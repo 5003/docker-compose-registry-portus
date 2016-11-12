@@ -66,8 +66,12 @@ services:
     build: ./nginx/
     ports:
       - 80:80
+      - 443:443
     depends_on:
       - frontend
+    volumes:
+      - ./certs/${FQDN_NAME}/fullchain.pem:/certs/server.crt:ro
+      - ./certs/${FQDN_NAME}/privkey.pem:/certs/server.key:ro
 
 volumes:
   userdata:
