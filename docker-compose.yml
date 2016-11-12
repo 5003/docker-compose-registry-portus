@@ -62,6 +62,13 @@ services:
       - ./certs/${FQDN_NAME}/fullchain.pem:/certs/server.crt:ro
       - ./certs/${FQDN_NAME}/privkey.pem:/certs/server.key:ro
 
+  proxy:
+    build: ./nginx/
+    ports:
+      - 80:80
+    depends_on:
+      - frontend
+
 volumes:
   userdata:
     driver: local
