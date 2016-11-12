@@ -1,0 +1,2 @@
+curl --output ./privkey.pem --location https://github.com/SUSE/Portus/raw/master/vagrant/conf/ca_bundle/server.key
+curl --output ./fullchain.pem --location https://github.com/SUSE/Portus/raw/master/vagrant/conf/ca_bundle/server.crt
