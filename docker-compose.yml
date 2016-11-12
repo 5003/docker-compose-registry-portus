@@ -20,24 +20,28 @@ services:
       - 5000:5000
     environment:
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /images/
-      REGISTRY_AUTH_TOKEN_REALM: http://${FQDN_NAME}:5080/v2/token
+      REGISTRY_AUTH_TOKEN_REALM: https://${FQDN_NAME}:5080/v2/token
       REGISTRY_AUTH_TOKEN_SERVICE: ${FQDN_NAME}:5000
       REGISTRY_AUTH_TOKEN_ISSUER: $FQDN_NAME
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /certs/server.crt
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/server.crt
+      REGISTRY_HTTP_TLS_KEY: /certs/server.key
+      REGISTRY_HTTP_SECRET: $REGISTRY_HTTP_SECRET
       REGISTRY_NOTIFICATIONS_ENDPOINTS: >
         - name: frontend
-          url: http://frontend:3000/v2/webhooks/events
+          url: https://${FQDN_NAME}:5080/v2/webhooks/events
           timeout: 500
           threshold: 5
           backoff: 1
     volumes:
       - ./certs/${FQDN_NAME}/fullchain.pem:/certs/server.crt:ro
+      - ./certs/${FQDN_NAME}/privkey.pem:/certs/server.key:ro
       - images:/images/
 
   frontend:
     image: 5003/portus-git:$PORTUS_VERSION
     restart: always
-    command: puma --bind tcp://0.0.0.0:3000 --environment production --workers 3
+    command: puma --bind ssl://0.0.0.0:3000?cert=/certs/server.crt&key=/certs/server.key --environment production --workers 3
     ports:
       - 5080:3000
     depends_on:
@@ -54,9 +58,8 @@ services:
       PORTUS_PRODUCTION_PASSWORD: $DB_PASSWORD
       PORTUS_PRODUCTION_DATABASE: $DB_DATABASE
       PORTUS_PRODUCTION_HOST: userdata
-      # ref: https://github.com/SUSE/Portus/blob/cddfb5924fae7318d2effb118aaaa48e3d49ff26/config/config.yml
-      PORTUS_CHECK_SSL_USAGE_ENABLED: 'false'
     volumes:
+      - ./certs/${FQDN_NAME}/fullchain.pem:/certs/server.crt:ro
       - ./certs/${FQDN_NAME}/privkey.pem:/certs/server.key:ro
 
 volumes:
